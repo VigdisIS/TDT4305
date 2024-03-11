@@ -95,6 +95,28 @@ def k_shingles():
 
     # implement your code here
 
+    # From MMDs book: (maybe try after?)
+    # News articles have a lot of stop words 
+    # Define a shingle to be a stop word followed by the next two words forms a useful shingle 
+
+    # For each document, wliminate all blank space to one space (tabs, newlines, etc)
+    # lowercase all words, and then create k-shingles (5) from parameters_dictionary.
+    # For all shingles in the document, create a set of these and append them to the docs_k_shingles list
+
+    for doc in document_list.values():
+        # Lowercase all words
+        doc = doc.lower()
+        # Eliminate all blank space to one space (tabs, newlines, etc)
+        doc = ' '.join(doc.split())
+        # Create k-shingles
+        shingles = set()
+        for i in range(len(doc)-parameters_dictionary['k']+1):
+            shingle = doc[i:i+parameters_dictionary['k']]
+            shingles.add(shingle)
+        docs_k_shingles.append(shingles)
+
+    #print(docs_k_shingles[0])
+
     return docs_k_shingles
 
 
