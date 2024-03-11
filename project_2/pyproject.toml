@@ -1,0 +1,17 @@
+[tool.poetry]
+name = "project-2"
+version = "0.1.0"
+description = ""
+authors = ["Vigdis-Irene Steinsund <vigdis.steinsund@hotmail.com>"]
+readme = "README.md"
+packages = [{include = "project_2"}]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+numpy = "^1.26.4"
+ipykernel = "^6.29.3"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
