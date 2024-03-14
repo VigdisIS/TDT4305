@@ -101,12 +101,18 @@ def k_shingles():
 
     # For each document, wliminate all blank space to one space (tabs, newlines, etc)
     # lowercase all words, and then create k-shingles (5) from parameters_dictionary.
+
     for doc in document_list.values():
         words = doc.lower().split()
-        docs_k_shingles.append([' '.join(words[i:i+parameters_dictionary['k']]) for i in range(len(words) - parameters_dictionary['k'] + 1)])
+
+        shingles = []
+        for i in range(len(words) - parameters_dictionary['k']  + 1):
+            shingle = ' '.join(words[i:i+parameters_dictionary['k'] ])
+            shingles.append(shingle)
+            
+        docs_k_shingles.append(shingles)
 
     return docs_k_shingles
-
 
 # METHOD FOR TASK 2
 # Creates a signatures set of the documents from the k-shingles list
@@ -120,17 +126,15 @@ def signature_set(k_shingles):
     # Check each document, if the document contains the shingle, set the corresponding cell in the signature matrix to 1; otherwise, leave it as 0
 
     k_shingles_set = set([item for sublist in k_shingles for item in sublist])
+    shingle_to_index = {shingle: idx for idx, shingle in enumerate(k_shingles_set)}
+    docs_sig_sets = np.zeros((len(k_shingles_set), len(document_list)), dtype=int)
 
-    shingle_to_index = {shingle: index for index, shingle in enumerate(k_shingles_set)}
+    for doc_index, shingles_set in enumerate(k_shingles):
+        for shingle in shingles_set:
+            shingle_index = shingle_to_index[shingle]
+            docs_sig_sets[shingle_index, doc_index] = 1
 
-    docs_sig_sets = [[0 for _ in range(len(document_list))] for _ in range(len(k_shingles_set))]
-
-    for doc_index, doc in enumerate(document_list):
-        for shingle in k_shingles_set:
-            if shingle in document_list[doc]:
-                shingle_index = shingle_to_index[shingle]
-                docs_sig_sets[shingle_index][doc_index] = 1
-
+    print("The Input Signature Matrix is:\n", docs_sig_sets, "\n")
     return docs_sig_sets
 
 
@@ -142,6 +146,39 @@ def generate_hash_functions(num_perm, N):
     
     # implement your code here
 
+    def is_prime(n):
+        if n % 2 == 0:
+            return False
+        i = 3
+        while i * i <= n:
+            if n % i == 0:
+                return False
+            i += 2
+        return True
+
+    def next_prime(N):
+        if N % 2 == 0:
+            N = N + 1
+        while not is_prime(N):
+            N = N + 2
+        return N
+
+    max_shingle_id = N
+    # Next prime number after the maximum shingle ID.
+    next_prime_num = next_prime(max_shingle_id)
+
+    # Generate 'num_perm' random coefficients for the random hash functions.
+    for i in range(num_perm):
+        # Ensure that 'a' and 'b' are different.
+        while True:
+            a = random.randint(0, max_shingle_id)
+            b = random.randint(0, max_shingle_id)
+            if a != b:
+                break
+
+        # Create a new hash function and add it to the list.
+        hash_funcs.append(lambda x: (a * x + b) % next_prime_num)
+
     return hash_funcs
 # Creates the minHash signatures after generating hash functions
 def minHash(docs_signature_sets, hash_fn):
@@ -149,6 +186,25 @@ def minHash(docs_signature_sets, hash_fn):
 
     # implement your code here
 
+    # Initialize the min_hash_signatures matrix with infinity for each cell
+    min_hash_signatures = [[float('inf') for _ in range(len(docs_signature_sets[0]))] for _ in range(len(hash_fn))]
+
+    # For each row r (shingle)
+    for r in range(len(docs_signature_sets)):
+        # For each column c (document)
+        for c in range(len(docs_signature_sets[r])):
+            # If the document contains the shingle (cell is 1)
+            if docs_signature_sets[r][c] == 1:
+                # For each hash function
+                for i in range(len(hash_fn)):
+                    # Calculate the hash value of the shingle index
+                    hash_value = hash_fn[i](r)
+                    # If the hash value is less than the current minimum hash signature
+                    if hash_value < min_hash_signatures[i][c]:
+                        # Update the minimum hash signature
+                        min_hash_signatures[i][c] = hash_value
+
+    print("The MinHash Signature Matrix is:\n", np.array(min_hash_signatures), "\n")
     return min_hash_signatures
 
 
@@ -159,8 +215,31 @@ def lsh(m_matrix):
 
     # implement your code here
 
-    return candidates
+    r = int(len(m_matrix) / parameters_dictionary['b'])
+    buckets = {}
 
+    # Loop over each band
+    for band in range(parameters_dictionary['b']):
+        start_index = band * r
+        end_index = (band + 1) * r
+
+        # Loop over each column (document)
+        for col in range(len(m_matrix[0])):
+            # Create a hashable key for this band and document
+            key = tuple([m_matrix[i][col] for i in range(start_index, end_index)])
+            
+            # Add this document to the appropriate bucket
+            if key not in buckets:
+                buckets[key] = []
+            buckets[key].append(col)
+
+    # Find candidate pairs
+    for key in buckets:
+        # If more than one document hashed to this bucket, add them as candidates
+        if len(buckets[key]) > 1:
+            candidates.append(buckets[key])
+
+    return candidates
 
 # METHOD FOR TASK 5
 # Calculates the similarities of the candidate documents
@@ -239,7 +318,7 @@ if __name__ == '__main__':
     if parameters_dictionary['naive']:
         print("Naive similarity calculation took", t3 - t2, "sec")
 
-    print("LSH process took in total", t14 - t15, "sec")
+    print("LSH process took in total", t15 - t14, "sec")
 
     
     print("The pairs of documents are:\n")
@@ -248,6 +327,3 @@ if __name__ == '__main__':
               are {round(list(p.values())[0],2)*100}% similar")
         
         print("\n")
-
-    
-    
