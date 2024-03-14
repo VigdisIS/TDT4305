@@ -101,21 +101,9 @@ def k_shingles():
 
     # For each document, wliminate all blank space to one space (tabs, newlines, etc)
     # lowercase all words, and then create k-shingles (5) from parameters_dictionary.
-    # For all shingles in the document, create a set of these and append them to the docs_k_shingles list
-
     for doc in document_list.values():
-        # Lowercase all words
-        doc = doc.lower()
-        # Eliminate all blank space to one space (tabs, newlines, etc)
-        doc = ' '.join(doc.split())
-        # Create k-shingles
-        shingles = set()
-        for i in range(len(doc)-parameters_dictionary['k']+1):
-            shingle = doc[i:i+parameters_dictionary['k']]
-            shingles.add(shingle)
-        docs_k_shingles.append(shingles)
-
-    #print(docs_k_shingles[0])
+        words = doc.lower().split()
+        docs_k_shingles.append([' '.join(words[i:i+parameters_dictionary['k']]) for i in range(len(words) - parameters_dictionary['k'] + 1)])
 
     return docs_k_shingles
 
@@ -126,6 +114,22 @@ def signature_set(k_shingles):
     docs_sig_sets = []
 
     # implement your code here
+
+    # Initialize an empty signature matrix with rows for each shingle and columns for each document
+    # For each unique shingle:
+    # Check each document, if the document contains the shingle, set the corresponding cell in the signature matrix to 1; otherwise, leave it as 0
+
+    k_shingles_set = set([item for sublist in k_shingles for item in sublist])
+
+    shingle_to_index = {shingle: index for index, shingle in enumerate(k_shingles_set)}
+
+    docs_sig_sets = [[0 for _ in range(len(document_list))] for _ in range(len(k_shingles_set))]
+
+    for doc_index, doc in enumerate(document_list):
+        for shingle in k_shingles_set:
+            if shingle in document_list[doc]:
+                shingle_index = shingle_to_index[shingle]
+                docs_sig_sets[shingle_index][doc_index] = 1
 
     return docs_sig_sets
 
