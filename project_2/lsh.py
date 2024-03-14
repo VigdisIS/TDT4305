@@ -125,12 +125,18 @@ def signature_set(k_shingles):
     # For each unique shingle:
     # Check each document, if the document contains the shingle, set the corresponding cell in the signature matrix to 1; otherwise, leave it as 0
 
+
+    # Make docs consist of shingles
+    # Then make this a set within each doc.
+    # In the numpy array matrix of zeros, if the shingle is in the doc, set the cell to 1.
+
+
     k_shingles_set = set([item for sublist in k_shingles for item in sublist])
     shingle_to_index = {shingle: idx for idx, shingle in enumerate(k_shingles_set)}
     docs_sig_sets = np.zeros((len(k_shingles_set), len(document_list)), dtype=int)
 
     for doc_index, shingles_set in enumerate(k_shingles):
-        for shingle in shingles_set:
+        for shingle in shingles_set: # Doesn't actually check which docs contain the shingle? Only the ones it comes from, not if any other contain it?
             shingle_index = shingle_to_index[shingle]
             docs_sig_sets[shingle_index, doc_index] = 1
 
