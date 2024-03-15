@@ -231,6 +231,7 @@ def lsh(m_matrix):
 def candidates_similarities(candidate_docs, min_hash_matrix):
     similarity_list = []  # Initialize as a list
 
+    t = parameters_dictionary["t"]
     # Number of hash functions
     num_hash_functions = len(min_hash_matrix)
 
@@ -247,8 +248,9 @@ def candidates_similarities(candidate_docs, min_hash_matrix):
 
         similarity = pair_sum / num_hash_functions
 
-        # Add the pair and their similarity to the list as a dictionary
-        similarity_list.append({pair: similarity})
+        if similarity >= t:
+            # Add the pair and their similarity to the list as a dictionary
+            similarity_list.append({pair: similarity})
 
     return similarity_list
 
