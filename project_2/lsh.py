@@ -336,11 +336,11 @@ if __name__ == "__main__":
 
     print("LSH process took in total", t15 - t14, "sec")
 
-    # print("The pairs of documents are:\n")
-    # for p in true_pairs:
-    #    print(
-    #        f"LSH algorith reveals that the BBC article {list(p.keys())[0][0]+1}.txt and {list(p.keys())[0][1]+1}.txt \
-    #          are {round(list(p.values())[0],2)*100}% similar"
-    #    )
+    print("The pairs of documents are:\n")
+    for p in true_pairs:
+        print(
+            f"LSH algorith reveals that the BBC article {list(p.keys())[0][0]+1}.txt and {list(p.keys())[0][1]+1}.txt \
+              are {round(list(p.values())[0],2)*100}% similar"
+        )
 
-    #   print("\n")
+        print("\n")
