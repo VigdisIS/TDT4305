@@ -93,8 +93,6 @@ def naive():
 def k_shingles():
     docs_k_shingles = []  # holds the k-shingles of each document
 
-    # implement your code here
-
     # From MMDs book: (maybe try after?)
     # News articles have a lot of stop words 
     # Define a shingle to be a stop word followed by the next two words forms a useful shingle 
@@ -118,8 +116,6 @@ def k_shingles():
 # Creates a signatures set of the documents from the k-shingles list
 def signature_set(k_shingles):
     docs_sig_sets = []
-
-    # implement your code here
 
     # Initialize an empty signature matrix with rows for each shingle and columns for each document
     # For each unique shingle:
@@ -150,38 +146,21 @@ def signature_set(k_shingles):
 def generate_hash_functions(num_perm, N):
     hash_funcs = []
 
-    def is_prime(n):
-        if n <= 2:
-            return n == 2
-        if n % 2 == 0:
-            return False
-        p = 3
-        while p * p <= n:
-            if n % p == 0:
-                return False
-            p += 2
-        return True
-
-    def next_prime(N):
-        prime = N + 1
-        while not is_prime(prime):
-            prime += 1
-        return prime
-
-    p = next_prime(N)
-
-    for i in range(1, num_perm + 1):
+    # Using a large prime number for p since set of shingles is always > ~700k
+    p = 10000019
+    
+    for _ in range(num_perm):
         a = random.randint(1, N)
         b = random.randint(0, N)
-        hash_func = (lambda x, a=a, b=b, p=p: ((a * x + b) % p) + 1, {'a': a, 'b': b, 'p': p})
-        hash_funcs.append(hash_func)
-
+        
+        hash_function = lambda x, a=a, b=b, p=p: ((a * x + b) % p) % N
+        
+        hash_funcs.append((hash_function, {'a': a, 'b': b, 'p': p}))
+    
     return hash_funcs
+
 # Creates the minHash signatures after generating hash functions
 def minHash(docs_signature_sets, hash_fn):
-
-    # implement your code here
-
     ## From task 2
 
     # Number of rows and columns in the input matrix
@@ -212,7 +191,7 @@ def minHash(docs_signature_sets, hash_fn):
 def lsh(m_matrix):
     candidates = set()
 
-    r = int(len(m_matrix) / parameters_dictionary['b'])
+    r = int(len(m_matrix)/parameters_dictionary['b'])
     buckets = {}
 
     for band in range(parameters_dictionary['b']):
