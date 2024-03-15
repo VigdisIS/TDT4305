@@ -145,70 +145,66 @@ def signature_set(k_shingles):
 
 
 # METHOD FOR TASK 3
-
 # A function for generating hash functions
+# Returns a dict, where key is permutations and params are a, b, p
 def generate_hash_functions(num_perm, N):
     hash_funcs = []
-    
-    # implement your code here
 
     def is_prime(n):
+        if n <= 2:
+            return n == 2
         if n % 2 == 0:
             return False
-        i = 3
-        while i * i <= n:
-            if n % i == 0:
+        p = 3
+        while p * p <= n:
+            if n % p == 0:
                 return False
-            i += 2
+            p += 2
         return True
 
     def next_prime(N):
-        if N % 2 == 0:
-            N = N + 1
-        while not is_prime(N):
-            N = N + 2
-        return N
+        prime = N + 1
+        while not is_prime(prime):
+            prime += 1
+        return prime
 
-    max_shingle_id = N
-    next_prime_num = next_prime(max_shingle_id)
+    p = next_prime(N)
 
-    for i in range(num_perm):
-        while True:
-            a = random.randint(0, max_shingle_id)
-            b = random.randint(0, max_shingle_id)
-            if a != b:
-                break
-
-        hash_funcs.append(lambda x: (a * x + b) % next_prime_num)
+    for i in range(1, num_perm + 1):
+        a = random.randint(1, N)
+        b = random.randint(0, N)
+        hash_func = (lambda x, a=a, b=b, p=p: ((a * x + b) % p) + 1, {'a': a, 'b': b, 'p': p})
+        hash_funcs.append(hash_func)
 
     return hash_funcs
 # Creates the minHash signatures after generating hash functions
 def minHash(docs_signature_sets, hash_fn):
-    min_hash_signatures = []
 
     # implement your code here
 
-    # Initialize the min_hash_signatures matrix with infinity for each cell
-    min_hash_signatures = [[float('inf') for _ in range(len(docs_signature_sets[0]))] for _ in range(len(hash_fn))]
+    ## From task 2
 
-    # For each row r (shingle)
-    for r in range(len(docs_signature_sets)):
-        # For each column c (document)
-        for c in range(len(docs_signature_sets[r])):
-            # If the document contains the shingle (cell is 1)
+    # Number of rows and columns in the input matrix
+    num_rows, num_cols = docs_signature_sets.shape
+
+    # Number of hash functions
+    num_hash_functions = len(hash_fn)
+
+    # Initialize the signature matrix with infinite values
+    signature_matrix = [[float('inf') for _ in range(num_cols)] for _ in range(num_hash_functions)]
+
+    # Apply the MinHash algorithm
+    for r in range(num_rows):
+        for c in range(num_cols):
             if docs_signature_sets[r][c] == 1:
-                # For each hash function
-                for i in range(len(hash_fn)):
-                    # Calculate the hash value of the shingle index
-                    hash_value = hash_fn[i](r)
-                    # If the hash value is less than the current minimum hash signature
-                    if hash_value < min_hash_signatures[i][c]:
-                        # Update the minimum hash signature
-                        min_hash_signatures[i][c] = hash_value
+                for i, hash_function in enumerate(hash_fn):
+                    hash_func, params = hash_function
+                    hash_value = hash_func(r, **params)
+                    signature_matrix[i][c] = min(signature_matrix[i][c], hash_value)
 
-    print("The MinHash Signature Matrix is:\n", np.array(min_hash_signatures), "\n")
+    print("The MinHash Signature Matrix is:\n", np.array(signature_matrix), "\n")
 
-    return min_hash_signatures
+    return signature_matrix
 
 
 # METHOD FOR TASK 4
