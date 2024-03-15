@@ -125,22 +125,22 @@ def signature_set(k_shingles):
     # For each unique shingle:
     # Check each document, if the document contains the shingle, set the corresponding cell in the signature matrix to 1; otherwise, leave it as 0
 
+    vocab = set([item for sublist in k_shingles for item in sublist])
+    shingle_to_index = {shingle: idx for idx, shingle in enumerate(vocab)}
+    docs_sig_sets = np.zeros((len(vocab), len(k_shingles)), dtype=int)
 
-    # Make docs consist of shingles
-    # Then make this a set within each doc.
-    # In the numpy array matrix of zeros, if the shingle is in the doc, set the cell to 1.
-
-
-    k_shingles_set = set([item for sublist in k_shingles for item in sublist])
-    shingle_to_index = {shingle: idx for idx, shingle in enumerate(k_shingles_set)}
-    docs_sig_sets = np.zeros((len(k_shingles_set), len(document_list)), dtype=int)
-
+    # Remove duplicates within each k_Shingles list document
+    for i in range(len(k_shingles)):
+        k_shingles[i] = set(k_shingles[i])
+    
     for doc_index, shingles_set in enumerate(k_shingles):
-        for shingle in shingles_set: # Doesn't actually check which docs contain the shingle? Only the ones it comes from, not if any other contain it?
-            shingle_index = shingle_to_index[shingle]
-            docs_sig_sets[shingle_index, doc_index] = 1
-
+        for shingle in shingles_set:
+            if shingle in shingle_to_index:
+                shingle_index = shingle_to_index[shingle]
+                docs_sig_sets[shingle_index, doc_index] = 1
+    
     print("The Input Signature Matrix is:\n", docs_sig_sets, "\n")
+    
     return docs_sig_sets
 
 
@@ -170,19 +170,15 @@ def generate_hash_functions(num_perm, N):
         return N
 
     max_shingle_id = N
-    # Next prime number after the maximum shingle ID.
     next_prime_num = next_prime(max_shingle_id)
 
-    # Generate 'num_perm' random coefficients for the random hash functions.
     for i in range(num_perm):
-        # Ensure that 'a' and 'b' are different.
         while True:
             a = random.randint(0, max_shingle_id)
             b = random.randint(0, max_shingle_id)
             if a != b:
                 break
 
-        # Create a new hash function and add it to the list.
         hash_funcs.append(lambda x: (a * x + b) % next_prime_num)
 
     return hash_funcs
@@ -211,6 +207,7 @@ def minHash(docs_signature_sets, hash_fn):
                         min_hash_signatures[i][c] = hash_value
 
     print("The MinHash Signature Matrix is:\n", np.array(min_hash_signatures), "\n")
+
     return min_hash_signatures
 
 
@@ -220,6 +217,8 @@ def lsh(m_matrix):
     candidates = []  # list of candidate sets of documents for checking similarity
 
     # implement your code here
+
+    candidates = set()  # set of candidate pairs of documents for checking similarity
 
     r = int(len(m_matrix) / parameters_dictionary['b'])
     buckets = {}
@@ -236,15 +235,15 @@ def lsh(m_matrix):
             
             # Add this document to the appropriate bucket
             if key not in buckets:
-                buckets[key] = []
-            buckets[key].append(col)
+                buckets[key] = [col]
+            else:
+                for candidate_doc in buckets[key]:
+                    # Ensure that the smaller index is first in the pair
+                    pair = (min(candidate_doc, col), max(candidate_doc, col))
+                    candidates.add(pair)
+                buckets[key].append(col)
 
-    # Find candidate pairs
-    for key in buckets:
-        # If more than one document hashed to this bucket, add them as candidates
-        if len(buckets[key]) > 1:
-            candidates.append(buckets[key])
-
+    print(candidates)
     return candidates
 
 # METHOD FOR TASK 5
