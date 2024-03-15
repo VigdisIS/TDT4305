@@ -210,34 +210,28 @@ def minHash(docs_signature_sets, hash_fn):
 # METHOD FOR TASK 4
 # Hashes the MinHash Signature Matrix into buckets and find candidate similar documents
 def lsh(m_matrix):
-    candidates = []  # list of candidate sets of documents for checking similarity
-
-    # implement your code here
-
-    candidates = set()  # set of candidate pairs of documents for checking similarity
+    candidates = set()
 
     r = int(len(m_matrix) / parameters_dictionary['b'])
     buckets = {}
 
-    # Loop over each band
     for band in range(parameters_dictionary['b']):
         start_index = band * r
         end_index = (band + 1) * r
 
-        # Loop over each column (document)
         for col in range(len(m_matrix[0])):
-            # Create a hashable key for this band and document
             key = tuple([m_matrix[i][col] for i in range(start_index, end_index)])
-            
-            # Add this document to the appropriate bucket
+
             if key not in buckets:
                 buckets[key] = [col]
             else:
-                for candidate_doc in buckets[key]:
-                    # Ensure that the smaller index is first in the pair
-                    pair = (min(candidate_doc, col), max(candidate_doc, col))
-                    candidates.add(pair)
                 buckets[key].append(col)
+
+    # Generate candidate pairs using combinations
+    for bucket_docs in buckets.values():
+        for pair in combinations(bucket_docs, 2):
+            pair = (min(pair), max(pair))
+            candidates.add(pair)
 
     print(candidates)
     return candidates
